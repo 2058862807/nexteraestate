@@ -14,10 +14,19 @@ export default defineConfig({
     })
   ],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./client/src"),
-      "@assets": path.resolve(__dirname, "./attached_assets"),
-    },
+    alias: [
+      // Fixed alias configuration using array format
+      {
+        find: "@",
+        replacement: path.resolve(__dirname, "./client/src")
+      },
+      {
+        find: "@assets",
+        replacement: path.resolve(__dirname, "./attached_assets")
+      }
+    ],
+    // Add missing extensions configuration
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
   },
   build: {
     outDir: "dist/public",
