@@ -59,4 +59,12 @@
   "engines": {
     "node": ">=18.0.0"
   }
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "debug": "vite build --debug",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  }
 }
