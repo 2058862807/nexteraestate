@@ -1,11 +1,14 @@
+// vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { fileURLToPath } from "url";
 import checker from "vite-plugin-checker";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-// Proper __dirname for ES modules
-const __dirname = path.dirname(new URL(import.meta.url).pathname;
+// Get directory name in ES module environment
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [
@@ -22,7 +25,8 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "client/src"),
       "@assets": path.resolve(__dirname, "attached_assets")
-    }
+    },
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
   },
   build: {
     outDir: "dist/public",
@@ -51,4 +55,8 @@ export default defineConfig({
     strictPort: true
   },
   root: "./client",
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+    exclude: ['@tanstack/react-query']
+  }
 });
