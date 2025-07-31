@@ -5,7 +5,7 @@ import checker from "vite-plugin-checker";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 // Explicitly define __dirname for ES modules
-const __dirname = path.dirname(new URL(import.meta.url).pathname;
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 export default defineConfig({
   plugins: [
@@ -19,16 +19,10 @@ export default defineConfig({
     })
   ],
   resolve: {
-    alias: [
-      {
-        find: "@",
-        replacement: path.resolve(__dirname, "client/src")
-      },
-      {
-        find: "@assets",
-        replacement: path.resolve(__dirname, "attached_assets")
-      }
-    ],
+    alias: {
+      "@": path.resolve(__dirname, "client/src"),
+      "@assets": path.resolve(__dirname, "attached_assets")
+    },
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
   },
   build: {
