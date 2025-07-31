@@ -1,19 +1,16 @@
-// vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { fileURLToPath } from "url";
 import checker from "vite-plugin-checker";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-// Get directory name in ES module environment
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Get absolute path to project root
+const projectRoot = process.cwd();
 
 export default defineConfig({
   plugins: [
     react(),
-    tsconfigPaths(), // Essential for path resolution
+    tsconfigPaths(),
     checker({
       typescript: true,
       eslint: {
@@ -23,24 +20,38 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client/src"),
-      "@assets": path.resolve(__dirname, "attached_assets")
-    },
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
+      "@": path.resolve(projectRoot, "client/src"),
+      "@assets": path.resolve(projectRoot, "attached_assets")
+    }
   },
   build: {
     outDir: "dist/public",
     sourcemap: true,
     emptyOutDir: true,
     rollupOptions: {
-      output: {
-        manualChunks: {
-          react: ['react', 'react-dom'],
-          radix: [/@radix-ui/],
-          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
-          vendor: ['lucide-react', 'wouter', 'tailwind-merge']
+      // Add explicit external mapping for problematic imports
+      external: (source) => {
+        // Add any modules that need explicit externalization
+        return false;
+      },
+      plugins: [
+        // Custom plugin to debug unresolved imports
+        {
+          name: 'debug-unresolved',
+          resolveId(source) {
+            if (source.includes('ErrorBoundary')) {
+              console.log(`Resolving: ${source}`);
+              const resolved = this.resolve(source, undefined, { skipSelf: true });
+              resolved.then(r => {
+                if (!r) console.error(`FAILED TO RESOLVE: ${source}`);
+                else console.log(`Resolved ${source} to ${r.id}`);
+              });
+              return resolved;
+            }
+            return null;
+          }
         }
-      }
+      ]
     }
   },
   server: {
@@ -55,8 +66,5 @@ export default defineConfig({
     strictPort: true
   },
   root: "./client",
-  optimizeDeps: {
-    include: ['react', 'react-dom'],
-    exclude: ['@tanstack/react-query']
-  }
+  base: './',
 });
