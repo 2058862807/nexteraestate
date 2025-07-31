@@ -2,10 +2,12 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import checker from "vite-plugin-checker";
+import tsconfigPaths from "vite-tsconfig-paths"; // Add this
 
 export default defineConfig({
   plugins: [
     react(),
+    tsconfigPaths(), // Add this plugin
     checker({
       typescript: true,
       eslint: {
@@ -15,17 +17,15 @@ export default defineConfig({
   ],
   resolve: {
     alias: [
-      // Fixed alias configuration using array format
       {
         find: "@",
-        replacement: path.resolve(__dirname, "./client/src")
+        replacement: path.resolve(__dirname, "client/src")
       },
       {
         find: "@assets",
-        replacement: path.resolve(__dirname, "./attached_assets")
+        replacement: path.resolve(__dirname, "attached_assets")
       }
     ],
-    // Add missing extensions configuration
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
   },
   build: {
