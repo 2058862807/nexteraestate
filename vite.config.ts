@@ -4,13 +4,13 @@ import path from "path";
 import checker from "vite-plugin-checker";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-// Explicitly define __dirname for ES modules
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+// Proper __dirname for ES modules
+const __dirname = path.dirname(new URL(import.meta.url).pathname;
 
 export default defineConfig({
   plugins: [
     react(),
-    tsconfigPaths(), // Add path resolver plugin
+    tsconfigPaths(), // Essential for path resolution
     checker({
       typescript: true,
       eslint: {
@@ -22,8 +22,7 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "client/src"),
       "@assets": path.resolve(__dirname, "attached_assets")
-    },
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
+    }
   },
   build: {
     outDir: "dist/public",
