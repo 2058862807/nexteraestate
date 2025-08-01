@@ -1,23 +1,25 @@
-# Use Node with Alpine for smaller image
+# Use Node with Alpine for a smaller image
 FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package and TypeScript config
 COPY package.json tsconfig.json ./
-COPY services ./services
-COPY scheduled ./scheduled
+
+# Copy source code (adjust if your app structure differs)
 COPY index.ts ./index.ts
+COPY services ./services
+COPY server ./server
 
 # Install dependencies
 RUN npm install
 
-# Build the app (optional — remove if not using TypeScript build step)
+# Compile TypeScript (if using tsc)
 RUN npm run build
 
-# Expose port
+# Expose your app's port
 EXPOSE 8080
 
-# Start the app
+# Run the compiled app
 CMD ["node", "dist/index.js"]
