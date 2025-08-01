@@ -4,13 +4,8 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package and TypeScript config
-COPY package.json tsconfig.json ./
-
-# Copy source code (adjust if your app structure differs)
-COPY index.ts ./index.ts
-COPY services ./services
-COPY scheduled ./scheduled
+# Copy everything first to avoid path issues
+COPY . .
 
 # Install dependencies
 RUN npm install
