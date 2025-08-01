@@ -1,30 +1,42 @@
-# Base image
-FROM node:18-alpine
-
-# Set working directory
+# Stage 1: Build Vite client
+FROM node:18-alpine AS client-builder
 WORKDIR /app
-
-# 1. Copy dependency files
-COPY package*.json ./
 COPY client/package*.json ./client/
-COPY server/package*.json ./server/
-
-# 2. Install dependencies
-RUN npm install
+COPY package*.json ./
 RUN npm install --prefix client
-RUN npm install --prefix server
-
-# 3. Copy ALL source code
-COPY . .
-
-# 4. Build client (Vite)
+COPY client ./client
 RUN npm run build --prefix client
 
-# 5. Set production environment
+# Stage 2: Build server
+FROM node:18-alpine AS server-builder
+WORKDIR /app
+COPY server/package*.json ./server/
+COPY package*.json ./
+RUN npm install --prefix server
+COPY server ./server
+
+# Stage 3: Production image
+FROM node:18-alpine
+WORKDIR /app
+
+# Copy build artifacts
+COPY --from=client-builder /app/client/dist ./client/dist
+COPY --from=server-builder /app/server ./server
+COPY --from=server-builder /app/server/package*.json ./server/
+COPY --from=server-builder /app/package*.json ./
+
+# Install production dependencies
+RUN npm install --prefix server --production
+
+# Environment configuration
 ENV NODE_ENV=production
+ENV PORT=8080
+ENV FILE_UPLOAD_PATH=/data/uploads
+ENV MAX_FILE_SIZE=10485760  # 10MB
 
-# 6. Expose port (match your server's port)
+# Create upload directory
+RUN mkdir -p ${FILE_UPLOAD_PATH}
+
+# Expose port and start
 EXPOSE 8080
-
-# 7. Start server - CHANGE IF YOUR COMMAND IS DIFFERENT!
-CMD ["npm", "run", "start", "--prefix", "server"]
+CMD ["node", "server/index.js"]
