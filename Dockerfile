@@ -40,3 +40,32 @@ RUN mkdir -p ${FILE_UPLOAD_PATH}
 # Expose port and start
 EXPOSE 8080
 CMD ["node", "server/index.js"]
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install Python and build tools for native modules
+RUN apk add --no-cache python3 make g++
+
+# Copy package files first for better caching
+COPY package*.json ./
+COPY server/package*.json ./server/
+
+# Install dependencies
+RUN npm install --production
+
+# Copy app source
+COPY . .
+
+# Build step (if needed)
+RUN npm run build --prefix client
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Create data directory for uploads
+RUN mkdir -p /data/uploads
+
+# Start the server
+CMD ["node", "server/index.js"]
