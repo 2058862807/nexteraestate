@@ -68,6 +68,21 @@ app.use((req, res, next) => {
   app.listen(port, "0.0.0.0", () => {
     console.log(`[SERVER] Listening on port ${port}`);
   });
-})();
+import express from 'express';
+import deathSwitchRouter from './routes/deathSwitchRoutes';
+
+// ... other imports and setup
+
+const app = express();
+
+// ... middleware setup
+
+// Add death switch routes
+app.use('/api/deathswitch', deathSwitchRouter);
+
+// ... rest of the server setup
+
+// Start scheduled tasks
+import './scheduled/deathSwitchTasks';})();
 
 
