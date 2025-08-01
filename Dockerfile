@@ -10,14 +10,15 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code
+# Copy only the files that exist in your project
 COPY client ./client
 COPY server ./server
 COPY vite.config.ts ./
 COPY tsconfig.json ./
-COPY tailwind.config.js ./
-COPY postcss.config.js ./
-COPY drizzle.config.ts ./
+
+# Copy config files only if they exist (optional files)
+COPY tailwind.config.* ./
+COPY postcss.config.* ./
 
 # Build the application (both client and server)
 RUN npm run build
