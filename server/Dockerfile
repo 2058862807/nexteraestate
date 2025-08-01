@@ -10,7 +10,7 @@ COPY package.json tsconfig.json ./
 # Copy source code (adjust if your app structure differs)
 COPY index.ts ./index.ts
 COPY services ./services
-COPY server ./server
+COPY scheduled ./scheduled
 
 # Install dependencies
 RUN npm install
