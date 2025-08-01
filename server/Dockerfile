@@ -8,7 +8,6 @@ WORKDIR /app
 COPY package.json tsconfig.json ./
 COPY services ./services
 COPY scheduled ./scheduled
-COPY .env .env
 COPY index.ts ./index.ts
 
 # Install dependencies
