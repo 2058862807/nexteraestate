@@ -10,6 +10,8 @@ import path from 'path';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import paymentRoutes from './routes/paymentRoutes';
+import legalRoutes from './routes/legalRoutes';
 
 // Database setup
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
