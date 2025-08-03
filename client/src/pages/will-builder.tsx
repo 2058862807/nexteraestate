@@ -1,24 +1,5 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
-import { apiRequest } from "@/lib/queryClient";
-import Navigation from "@/components/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FileSignature, User, Users, Home, ArrowLeft, ArrowRight, Shield, AlertTriangle } from "lucide-react";
-import { getStateRequirements, getAllStates } from "@shared/state-requirements-complete";
-import { generateLegalWill, generateWitnessInstructions } from "@shared/legal-document-generator";
-import { parseNaturalLanguageWill, generateAIWillSuggestions, commonWillExamples, generateSmartDefaults } from "@shared/ai-will-generator";
+// Simple will builder page without complex dependencies
+import React from 'react';
 
 const personalInfoSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
