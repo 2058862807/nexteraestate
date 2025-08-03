@@ -1,370 +1,559 @@
-import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import Navigation from "@/components/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import AIAssistant from "@/components/ai-assistant";
-import AIWillReviewerSimple from "@/components/ai-will-reviewer-simple";
-import VoiceToWillSimple from "@/components/voice-to-will-simple";
-import DocumentCategorizer from "@/components/document-categorizer";
-import DeathSwitchDashboard from "@/components/death-switch-dashboard";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Navigation from '@/components/navigation';
+import WillProgress from '@/components/will-progress';
+import LegalComplianceChecker from '@/components/legal-compliance-checker';
+import VideoRecorder from '@/components/video-recorder';
+import GriefCounseling from '@/components/ai-grief-counseling';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/api';
 import { 
-  Sparkles, 
+  FileText, 
   Shield, 
   Users, 
   Heart, 
-  Upload, 
-  Clock, 
-  CheckCircle, 
-  AlertCircle,
-  FileText,
-  Vault,
-  Key,
-  PiggyBank,
-  Bot,
-  Mic,
-  Settings,
-  Award
-} from "lucide-react";
+  Video,
+  Scale,
+  Zap,
+  TrendingUp,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  Activity,
+  DollarSign,
+  Camera
+} from 'lucide-react';
+
+interface DashboardStats {
+  wills: number;
+  documents: number;
+  familyMembers: number;
+  storageUsed: number;
+  compliance: boolean;
+  lastActivity: string;
+}
 
 export default function AIEnhancedDashboard() {
-  const { user, isAuthenticated, isLoading } = useAuth();
-  const { toast } = useToast();
+  const [selectedTab, setSelectedTab] = useState('overview');
 
-  // Authentication disabled - open access mode
-  // useEffect(() => {
-  //   if (!isLoading && !isAuthenticated) {
-  //     toast({
-  //       title: "Unauthorized",
-  //       description: "You are logged out. Logging in again...",
-  //       variant: "destructive",
-  //     });
-  //     setTimeout(() => {
-  //       window.location.href = "/api/login";
-  //     }, 500);
-  //     return;
-  //   }
-  // }, [isAuthenticated, isLoading, toast]);
-
-  const { data: wills } = useQuery({
+  // Fetch dashboard data
+  const { data: willsData } = useQuery({
     queryKey: ["/api/wills"],
     retry: false,
   });
 
-  const { data: documents } = useQuery({
+  const { data: documentsData } = useQuery({
     queryKey: ["/api/documents"],
     retry: false,
   });
 
-  const { data: family } = useQuery({
+  const { data: familyData } = useQuery({
     queryKey: ["/api/family"],
     retry: false,
   });
 
-  const { data: deathSwitch } = useQuery({
+  const { data: deathSwitchData } = useQuery({
     queryKey: ["/api/death-switch"],
     retry: false,
   });
 
-  const { data: activity } = useQuery({
+  const { data: activityData } = useQuery({
     queryKey: ["/api/activity"],
     retry: false,
   });
 
-  // Removed authentication blocking
-  // if (isLoading || !isAuthenticated) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
-  //     </div>
-  //   );
-  // }
+  const { data: usageData } = useQuery({
+    queryKey: ["/api/payments/usage"],
+    retry: false,
+  });
 
-  // Calculate user progress for AI assistant
-  const userProgress = {
-    hasWill: Array.isArray(wills) && wills.length > 0,
-    hasDocuments: Array.isArray(documents) && documents.length > 0,
-    hasFamily: Array.isArray(family) && family.length > 0,
-    hasDeathSwitch: Array.isArray(deathSwitch) && deathSwitch.length > 0,
-    totalWills: Array.isArray(wills) ? wills.length : 0,
-    totalDocuments: Array.isArray(documents) ? documents.length : 0,
-    totalFamily: Array.isArray(family) ? family.length : 0,
-    recentActivity: Array.isArray(activity) ? activity.slice(0, 5) : []
+  const { data: subscriptionData } = useQuery({
+    queryKey: ["/api/payments/subscription"],
+    retry: false,
+  });
+
+  // Calculate stats
+  const stats: DashboardStats = {
+    wills: willsData?.length || 0,
+    documents: documentsData?.length || 0,
+    familyMembers: familyData?.length || 0,
+    storageUsed: usageData?.storage?.percentage || 0,
+    compliance: true,
+    lastActivity: activityData?.[0]?.createdAt || new Date().toISOString()
   };
 
-  const completionScore = Math.round(
-    ((userProgress.hasWill ? 25 : 0) +
-     (userProgress.hasDocuments ? 25 : 0) +
-     (userProgress.hasFamily ? 25 : 0) +
-     (userProgress.hasDeathSwitch ? 25 : 0))
-  );
-
-  const handleTaskClick = (task: string) => {
-    // Route to appropriate page based on task
-    if (task.toLowerCase().includes('will')) {
-      window.location.href = '/will-builder';
-    } else if (task.toLowerCase().includes('document')) {
-      window.location.href = '/vault';
-    } else if (task.toLowerCase().includes('family')) {
-      window.location.href = '/family';
-    }
-  };
-
-  const handleWillImproved = (improvedWill: string) => {
-    toast({
-      title: "Will Enhanced",
-      description: "Your will has been improved with AI suggestions",
-    });
-  };
-
-  const handleVoiceWillGenerated = (willContent: string) => {
-    toast({
-      title: "Voice Will Generated",
-      description: "Voice input converted to legal language",
-    });
-  };
-
-  const handleDocumentCategorized = (doc: any) => {
-    toast({
-      title: "Document Categorized",
-      description: `${doc.file.name} classified as ${doc.category}`,
-    });
-  };
-
-  const userContext = {
-    name: (user as any)?.firstName || 'User',
-    state: 'TX', // Default state
-    email: (user as any)?.email
-  };
-
-  const latestWill = Array.isArray(wills) && wills.length > 0 ? wills[0] : null;
+  const mainWill = willsData?.[0];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       <Navigation />
       
-      <div className="container mx-auto px-6 py-8 max-w-7xl overflow-x-hidden">
-        {/* AI-Enhanced Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Bot className="h-8 w-8 text-blue-600" />
-            <h1 className="text-4xl font-bold text-gray-800">AI-Powered Estate Planning</h1>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-neutral-800 mb-2">
+                Welcome to NextEra Estate
+              </h1>
+              <p className="text-lg text-neutral-600">
+                Your AI-powered estate planning command center
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Badge className="bg-green-100 text-green-800">
+                <Zap className="h-3 w-3 mr-1" />
+                AI-Enhanced
+              </Badge>
+              <Badge className="bg-blue-100 text-blue-800">
+                <Shield className="h-3 w-3 mr-1" />
+                Blockchain Secured
+              </Badge>
+            </div>
           </div>
-          <p className="text-xl text-gray-600">
-            Your intelligent assistant for comprehensive estate planning
-          </p>
         </div>
 
-        {/* Completion Overview */}
-        <Card className="mb-8 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+          <Card className="trust-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold text-primary">{stats.wills}</p>
+                  <p className="text-sm text-neutral-600">Wills</p>
+                </div>
+                <FileText className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="trust-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold text-secondary">{stats.documents}</p>
+                  <p className="text-sm text-neutral-600">Documents</p>
+                </div>
+                <Shield className="h-8 w-8 text-secondary" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="trust-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold text-accent">{stats.familyMembers}</p>
+                  <p className="text-sm text-neutral-600">Family</p>
+                </div>
+                <Users className="h-8 w-8 text-accent" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="trust-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold text-purple-600">{stats.storageUsed}%</p>
+                  <p className="text-sm text-neutral-600">Storage</p>
+                </div>
+                <Activity className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="trust-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold text-green-600">
+                    {subscriptionData?.plan?.name || 'Free'}
+                  </p>
+                  <p className="text-sm text-neutral-600">Plan</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="trust-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CheckCircle className="h-6 w-6 text-green-600 mb-1" />
+                  <p className="text-sm text-neutral-600">Compliant</p>
+                </div>
+                <Scale className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Tabs */}
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="will-builder">Will Builder</TabsTrigger>
+            <TabsTrigger value="compliance">Legal Compliance</TabsTrigger>
+            <TabsTrigger value="videos">Video Messages</TabsTrigger>
+            <TabsTrigger value="grief-support">AI Support</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                {/* Will Progress */}
+                {mainWill && (
+                  <Card className="trust-shadow">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <FileText className="h-5 w-5 mr-2" />
+                        Current Will Progress
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <WillProgress will={mainWill} />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Recent Activity */}
+                <Card className="trust-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Clock className="h-5 w-5 mr-2" />
+                      Recent Activity
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {activityData?.slice(0, 5).map((activity: any, index: number) => (
+                        <div key={index} className="flex items-center space-x-3 p-3 bg-neutral-50 rounded-lg">
+                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-neutral-800">{activity.action}</p>
+                            <p className="text-xs text-neutral-600">
+                              {new Date(activity.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      )) || (
+                        <p className="text-neutral-600 text-center py-4">No recent activity</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-6">
+                {/* Death Switch Status */}
+                <Card className="trust-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Heart className="h-5 w-5 mr-2 text-red-500" />
+                      Death Switch
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-600">Status</span>
+                        <Badge className="bg-green-100 text-green-800">
+                          {deathSwitchData?.enabled ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-600">Last Check-in</span>
+                        <span className="text-sm font-medium">
+                          {deathSwitchData?.lastCheckIn 
+                            ? new Date(deathSwitchData.lastCheckIn).toLocaleDateString()
+                            : 'Never'
+                          }
+                        </span>
+                      </div>
+                      <Button variant="outline" className="w-full">
+                        Configure Death Switch
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Storage Usage */}
+                <Card className="trust-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Activity className="h-5 w-5 mr-2" />
+                      Storage Usage
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span>Used Storage</span>
+                        <span>{usageData?.storage?.used || 0} / {usageData?.storage?.limit || 5} GB</span>
+                      </div>
+                      <Progress value={usageData?.storage?.percentage || 0} className="h-2" />
+                      
+                      <div className="space-y-2 text-xs text-neutral-600">
+                        <div className="flex justify-between">
+                          <span>Video Messages</span>
+                          <span>{usageData?.videoMessages?.used || 0} / {usageData?.videoMessages?.limit || 2}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Family Members</span>
+                          <span>{usageData?.familyMembers?.used || 0} / {usageData?.familyMembers?.limit || 3}</span>
+                        </div>
+                      </div>
+
+                      {subscriptionData?.plan && (
+                        <Button variant="outline" className="w-full">
+                          Manage {subscriptionData.plan.name} Plan
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Quick Actions */}
+                <Card className="trust-shadow">
+                  <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button className="w-full justify-start" variant="outline">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Continue Will
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <Video className="h-4 w-4 mr-2" />
+                      Record Message
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <Users className="h-4 w-4 mr-2" />
+                      Add Family Member
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Upload Document
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Will Builder Tab */}
+          <TabsContent value="will-builder" className="space-y-6">
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                {mainWill ? (
+                  <WillProgress will={mainWill} />
+                ) : (
+                  <Card className="trust-shadow">
+                    <CardContent className="p-12 text-center">
+                      <FileText className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-neutral-800 mb-2">
+                        Start Your Estate Plan
+                      </h3>
+                      <p className="text-neutral-600 mb-6">
+                        Create your legally compliant will with AI guidance in just minutes.
+                      </p>
+                      <Button className="bg-primary hover:bg-blue-700">
+                        Start Will Builder
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+              
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">Estate Planning Progress</h2>
-                <p className="text-gray-600">AI is tracking your completion</p>
-              </div>
-              <div className="text-right">
-                <div className="text-4xl font-bold text-blue-600">{completionScore}%</div>
-                <Badge className={completionScore >= 75 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                  {completionScore >= 75 ? 'Nearly Complete' : 'In Progress'}
-                </Badge>
-              </div>
-            </div>
-            <Progress value={completionScore} className="h-3" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 max-w-full overflow-x-hidden">
-              <div className="text-center">
-                <CheckCircle className={`h-8 w-8 mx-auto mb-2 ${userProgress.hasWill ? 'text-green-600' : 'text-gray-400'}`} />
-                <p className="text-sm font-medium">Will Created</p>
-              </div>
-              <div className="text-center">
-                <Upload className={`h-8 w-8 mx-auto mb-2 ${userProgress.hasDocuments ? 'text-green-600' : 'text-gray-400'}`} />
-                <p className="text-sm font-medium">Documents Stored</p>
-              </div>
-              <div className="text-center">
-                <Users className={`h-8 w-8 mx-auto mb-2 ${userProgress.hasFamily ? 'text-green-600' : 'text-gray-400'}`} />
-                <p className="text-sm font-medium">Family Added</p>
-              </div>
-              <div className="text-center">
-                <Shield className={`h-8 w-8 mx-auto mb-2 ${userProgress.hasDeathSwitch ? 'text-green-600' : 'text-gray-400'}`} />
-                <p className="text-sm font-medium">Death Switch Set</p>
+                <Card className="trust-shadow">
+                  <CardHeader>
+                    <CardTitle>AI Will Assistant</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <Zap className="h-5 w-5 text-blue-600 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-blue-800">AI Suggestion</p>
+                            <p className="text-sm text-blue-700">
+                              Based on your profile, consider adding a healthcare directive to your estate plan.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Button variant="outline" className="w-full">
+                        Get AI Recommendations
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        <div className="grid lg:grid-cols-3 gap-8 overflow-x-hidden">
-          {/* Left Column - AI Assistant */}
-          <div className="lg:col-span-1 space-y-6">
-            <AIAssistant 
-              userProgress={userProgress}
-              onTaskClick={handleTaskClick}
+          {/* Legal Compliance Tab */}
+          <TabsContent value="compliance" className="space-y-6">
+            <LegalComplianceChecker 
+              willData={mainWill}
+              onComplianceChange={(compliant, violations) => {
+                console.log('Compliance changed:', compliant, violations);
+              }}
             />
+          </TabsContent>
 
-            {/* Quick AI Actions */}
-            <Card className="border-purple-200 bg-purple-50">
+          {/* Video Messages Tab */}
+          <TabsContent value="videos" className="space-y-6">
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <VideoRecorder 
+                  onVideoSaved={(video) => {
+                    console.log('Video saved:', video);
+                  }}
+                />
+              </div>
+              
+              <div>
+                <Card className="trust-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Video className="h-5 w-5 mr-2" />
+                      Saved Messages
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="p-3 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-sm">Message to Children</span>
+                          <Badge variant="outline">Private</Badge>
+                        </div>
+                        <p className="text-xs text-neutral-600">2:34 duration</p>
+                      </div>
+                      
+                      <div className="p-3 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-sm">Anniversary Message</span>
+                          <Badge variant="outline">Scheduled</Badge>
+                        </div>
+                        <p className="text-xs text-neutral-600">1:12 duration</p>
+                      </div>
+                      
+                      <Button variant="outline" className="w-full">
+                        <Camera className="h-4 w-4 mr-2" />
+                        Record New Message
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* AI Grief Support Tab */}
+          <TabsContent value="grief-support" className="space-y-6">
+            <GriefCounseling />
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="trust-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-primary">75%</div>
+                  <Progress value={75} className="h-2 mt-2" />
+                  <p className="text-xs text-neutral-600 mt-2">Estate plan progress</p>
+                </CardContent>
+              </Card>
+
+              <Card className="trust-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Security Score</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-secondary">A+</div>
+                  <div className="flex items-center mt-2">
+                    <Shield className="h-4 w-4 text-secondary mr-1" />
+                    <span className="text-xs text-neutral-600">Blockchain secured</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="trust-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Legal Compliance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">100%</div>
+                  <div className="flex items-center mt-2">
+                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+                    <span className="text-xs text-neutral-600">All states verified</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="trust-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Family Engagement</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-accent">3/5</div>
+                  <div className="flex items-center mt-2">
+                    <Users className="h-4 w-4 text-accent mr-1" />
+                    <span className="text-xs text-neutral-600">Members active</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="trust-shadow">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-purple-800">
-                  <Sparkles className="h-6 w-6" />
-                  AI Quick Actions
+                <CardTitle className="flex items-center">
+                  <TrendingUp className="h-5 w-5 mr-2" />
+                  Estate Plan Health Score
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => window.location.href = '/will-builder'}
-                >
-                  <Bot className="mr-2 h-4 w-4" />
-                  AI Will Builder
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => document.getElementById('voice-to-will')?.scrollIntoView()}
-                >
-                  <Mic className="mr-2 h-4 w-4" />
-                  Voice to Will
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => document.getElementById('document-categorizer')?.scrollIntoView()}
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Smart Upload
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Middle Column - AI Features */}
-          <div className="lg:col-span-2 space-y-8">
-            
-            {/* AI Will Reviewer - Simple Interface */}
-            <div id="will-reviewer" className="overflow-x-hidden max-w-full">
-              <AIWillReviewerSimple />
-            </div>
-
-            {/* Voice to Will Generator - Simple Interface */}
-            <div id="voice-to-will" className="overflow-x-hidden max-w-full">
-              <VoiceToWillSimple />
-            </div>
-
-            {/* Document Categorizer */}
-            <div id="document-categorizer">
-              <DocumentCategorizer
-                onDocumentCategorized={handleDocumentCategorized}
-              />
-            </div>
-
-            {/* Estate Stats */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    Legal Documents
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">{userProgress.totalWills}</div>
-                  <p className="text-sm text-gray-600">Active Wills</p>
-                  <Button variant="outline" size="sm" className="mt-3">
-                    View All Documents
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Vault className="h-5 w-5 text-green-600" />
-                    Digital Vault
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600">{userProgress.totalDocuments}</div>
-                  <p className="text-sm text-gray-600">Stored Files</p>
-                  <Button variant="outline" size="sm" className="mt-3">
-                    Manage Vault
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* AI Features Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="border-green-200 bg-green-50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-800">
-                    <Award className="h-6 w-6" />
-                    Legal Compliance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-green-700 mb-4">
-                    AI continuously monitors your documents for legal compliance and state-specific requirements.
-                  </p>
-                  <Button className="bg-green-600 hover:bg-green-700 text-white">
-                    Check Compliance
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-orange-200 bg-orange-50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-orange-800">
-                    <Settings className="h-6 w-6" />
-                    Smart Death Switch
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-orange-700 mb-4">
-                    AI helps configure your death switch with optimal timing and notification settings.
-                  </p>
-                  <Button className="bg-orange-600 hover:bg-orange-700 text-white">
-                    Configure AI Assistant
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent AI Activity */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-6 w-6 text-gray-600" />
-              Recent AI Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {userProgress.recentActivity.length > 0 ? (
-              <div className="space-y-3">
-                {userProgress.recentActivity.map((item: any, index: number) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Bot className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="font-medium">{item.description}</p>
-                      <p className="text-sm text-gray-600">{new Date(item.timestamp).toLocaleString()}</p>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Overall Health</span>
+                    <Badge className="bg-green-100 text-green-800">Excellent</Badge>
+                  </div>
+                  
+                  <Progress value={90} className="h-3" />
+                  
+                  <div className="grid md:grid-cols-3 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="font-bold text-green-600">95%</div>
+                      <div className="text-neutral-600">Legal Compliance</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-blue-600">85%</div>
+                      <div className="text-neutral-600">Documentation</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-purple-600">90%</div>
+                      <div className="text-neutral-600">Family Coordination</div>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>AI activity will appear here as you use the platform</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
