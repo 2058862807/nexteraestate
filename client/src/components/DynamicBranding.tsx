@@ -27,15 +27,15 @@ const brandConfigs: Record<string, BrandConfig> = {
 };
 
 export function useBrandConfig() {
-  const [brandConfig, setBrandConfig] = useState<BrandConfig>(brandConfigs.nodoubtestate);
+  const [brandConfig, setBrandConfig] = useState<BrandConfig>(brandConfigs.nexteraestate);
 
   useEffect(() => {
     const hostname = window.location.hostname.toLowerCase();
     
-    if (hostname.includes('nextera')) {
+    if (hostname.includes('nextera') || hostname.includes('nexteraestate')) {
       setBrandConfig(brandConfigs.nexteraestate);
     } else {
-      setBrandConfig(brandConfigs.nodoubtestate);
+      setBrandConfig(brandConfigs.nexteraestate); // Default to NextEraEstate
     }
   }, []);
 
