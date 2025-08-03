@@ -159,7 +159,7 @@ export default function GriefCounseling({ className = '' }: GriefCounselingProps
 
         <CardContent className="flex-1 flex flex-col space-y-4">
           {/* Messages */}
-          <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
+          <div className="flex-1 overflow-y-auto pr-4 max-h-96" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
