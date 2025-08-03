@@ -238,7 +238,7 @@ export default function GriefCounseling({ className = '' }: GriefCounselingProps
                 </div>
               )}
             </div>
-          </ScrollArea>
+          </div>
 
           {/* Quick responses */}
           <div className="flex flex-wrap gap-2">
