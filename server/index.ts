@@ -1,88 +1,94 @@
 import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-
-import { registerRoutes } from "./routes"; // Make sure this file exists
-import { setupVite, log } from "./vite";   // Optional, dev only
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
-// Middleware to capture JSON body and log
+// CORS middleware
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5000'],
+  credentials: true
+}));
+
+// Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Custom middleware to capture and log responses
+// Request logging
 app.use((req, res, next) => {
-  const start = Date.now();
-  let capturedResponse: any;
-
-  const originalJson = res.json.bind(res);
-  res.json = (...args: any[]) => {
-    capturedResponse = args[0];
-    return originalJson(...args);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (req.path.startsWith("/api")) {
-      let logLine = `${req.method} ${req.path} ${res.statusCode} in ${duration}ms`;
-      if (capturedResponse) {
-        logLine += ` - ${JSON.stringify(capturedResponse).slice(0, 200)}`;
-      }
-      console.log(logLine);
-    }
-  });
-
+  console.log(`${req.method} ${req.path}`);
   next();
 });
 
-(async () => {
-  // Register backend API routes
-  await registerRoutes(app);
+// Basic health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
-  // Error handler
-  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    const status = err.statusCode || err.status || 500;
-    const message = err.message || "Internal Server Error";
-    res.status(status).json({ message });
-    throw err;
+// Basic API routes (placeholder)
+app.get('/api/user', (req, res) => {
+  res.json({ id: '1', name: 'Demo User', email: 'demo@nexteraestate.com' });
+});
+
+app.get('/api/wills', (req, res) => {
+  res.json([{
+    id: '1',
+    title: 'My Will',
+    status: 'draft',
+    personalInfo: { name: 'Demo User', state: 'CA' },
+    createdAt: new Date()
+  }]);
+});
+
+app.get('/api/documents', (req, res) => {
+  res.json([]);
+});
+
+app.get('/api/family', (req, res) => {
+  res.json([]);
+});
+
+app.get('/api/death-switch', (req, res) => {
+  res.json({ enabled: false });
+});
+
+app.get('/api/activity', (req, res) => {
+  res.json([{
+    id: '1',
+    action: 'Will created',
+    createdAt: new Date()
+  }]);
+});
+
+app.get('/api/payments/usage', (req, res) => {
+  res.json({
+    storage: { used: 0, limit: 5000000000, percentage: 0 },
+    videoMessages: { used: 0, limit: 2 },
+    familyMembers: { used: 0, limit: 3 }
   });
+});
 
-  // Serve frontend
-  if (process.env.NODE_ENV === "production") {
-    console.log("[SERVER] Production mode – serving static files");
-
-    const distPath = path.join(__dirname, "../../client/dist");
-    app.use(express.static(distPath));
-
-    app.get("*", (_req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  } else {
-    console.log("[SERVER] Development mode – using Vite middleware");
-    await setupVite(app);
-  }
-
-  const port = parseInt(process.env.PORT || "5000", 10);
-  app.listen(port, "0.0.0.0", () => {
-    console.log(`[SERVER] Listening on port ${port}`);
+app.get('/api/payments/subscription', (req, res) => {
+  res.json({
+    plan: { name: 'Free', id: 'free' },
+    status: 'active'
   });
-import express from 'express';
-import deathSwitchRouter from './routes/deathSwitchRoutes';
+});
 
-// ... other imports and setup
+// Error handler
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('Server error:', err);
+  res.status(err.status || 500).json({ 
+    error: err.message || 'Internal Server Error' 
+  });
+});
 
-const app = express();
-
-// ... middleware setup
-
-// Add death switch routes
-app.use('/api/deathswitch', deathSwitchRouter);
-
-// ... rest of the server setup
-
-// Start scheduled tasks
-import './scheduled/deathSwitchTasks';})();
+const port = parseInt(process.env.PORT || "5000", 10);
+app.listen(port, "0.0.0.0", () => {
+  console.log(`[SERVER] NextEra Estate backend listening on port ${port}`);
+  console.log(`[SERVER] Environment: ${process.env.NODE_ENV || 'development'}`);
+});
 
 
