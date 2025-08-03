@@ -48,6 +48,14 @@ const authenticateUser = async (req: Request, res: Response, next: any) => {
 
 export async function registerRoutes(app: express.Application) {
   
+  // ========== PAYMENT & SUBSCRIPTION ROUTES ==========
+  app.use('/api/payments', paymentRoutes);
+  app.use('/api/billing', paymentRoutes); // Alternative path
+  
+  // ========== LEGAL COMPLIANCE ROUTES ==========
+  app.use('/api/legal', legalRoutes);
+  app.use('/api/compliance', legalRoutes); // Alternative path
+  
   // ========== AUTH ROUTES ==========
   app.get('/api/login', (req, res) => {
     // Redirect to OAuth provider or show login form
