@@ -1,4 +1,3 @@
-import axios from 'axios';
 
 // Comprehensive 50-state legal requirements database
 const STATE_REQUIREMENTS = {
@@ -344,26 +343,22 @@ export class LegalComplianceService {
   }> {
     try {
       // This would integrate with legal databases like Westlaw, LexisNexis, or state legislature APIs
-      const response = await axios.get(`https://api.legalupdates.com/v1/estate-law/${state}`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.LEGAL_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
+      const { default: Anthropic } = await import('@anthropic-ai/sdk');
+      const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const requirements = this.getStateRequirements(state);
+      const stateName = requirements?.stateName || state;
+      const message = await client.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: `List any significant changes to estate planning law in ${stateName} in the past 12 months. Focus on will execution, probate thresholds, electronic wills, notarization. Return a JSON array with fields: description, severity (high/medium/low), effectiveDate. Return [] if no changes. Return only valid JSON.` }]
       });
-
-      return {
-        updates: response.data.updates || [],
-        lastChecked: new Date(),
-        nextCheck: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-      };
+      let updates = [];
+      const rc = message.content[0];
+      if (rc.type === 'text') { try { updates = JSON.parse(rc.text.replace(/```json|```/g, '').trim()); } catch(e) { updates = []; } }
+      return { updates, lastChecked: new Date(), nextCheck: new Date(Date.now() + 86400000) };
     } catch (error) {
       console.error('[Legal] Failed to fetch real-time updates:', error);
-      return {
-        updates: [],
-        lastChecked: new Date(),
-        nextCheck: new Date(Date.now() + 60 * 60 * 1000) // Retry in 1 hour
-      };
+      return { updates: [], lastChecked: new Date(), nextCheck: new Date(Date.now() + 3600000) };
     }
   }
 

@@ -4,7 +4,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import { eq, desc } from 'drizzle-orm';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
@@ -18,8 +18,8 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle({ client: pool });
 
 // OpenAI setup
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const openai = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 // File upload setup
