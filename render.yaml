@@ -2,6 +2,7 @@ services:
   - type: web
     name: nexteraestate
     env: node
+    rootDir: server
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
