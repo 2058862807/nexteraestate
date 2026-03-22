@@ -423,6 +423,40 @@ export async function registerRoutes(app: express.Application) {
     }
   });
 
+
+  app.get('/api/auth/google', (req, res) => {
+    const authUrl = googleClient.generateAuthUrl({
+      access_type: 'offline',
+      scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
+      include_granted_scopes: true
+    });
+    res.redirect(authUrl);
+  });
+
+  app.get('/api/auth/google/callback', async (req, res) => {
+    try {
+      const { code } = req.query;
+      const frontendUrl = process.env.FRONTEND_URL || 'https://nexteraestate.com';
+      if (!code) return res.redirect(frontendUrl + '?error=no_code');
+      const { tokens } = await googleClient.getToken(code as string);
+      googleClient.setCredentials(tokens);
+      const ticket = await googleClient.verifyIdToken({
+        idToken: tokens.id_token!,
+        audience: process.env.GOOGLE_CLIENT_ID!
+      });
+      const payload = ticket.getPayload()!;
+      const token = jwt.sign(
+        { id: payload.sub, email: payload.email, name: payload.name, avatar: payload.picture },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '7d' }
+      );
+      res.redirect(frontendUrl + '/dashboard?token=' + token);
+    } catch (error) {
+      console.error('Google callback error:', error);
+      res.redirect((process.env.FRONTEND_URL || 'https://nexteraestate.com') + '?error=auth_failed');
+    }
+  });
+
   console.log('All API routes registered successfully');
 }
 
@@ -484,3 +518,5 @@ const deathSwitchTable = {} as any;
 const videoMessagesTable = {} as any;
 const griefCounselingTable = {} as any;
 const activityTable = {} as any;
+// ========== GOOGLE AUTH ROUTES ==========
+// Add to registerRoutes function - paste before the closing console.log
