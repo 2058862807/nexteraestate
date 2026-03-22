@@ -1,6 +1,8 @@
+import { useAuth } from '../App';
 import React from 'react';
 
 export default function Landing() {
+  const { signIn } = useAuth();
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       <div className="container mx-auto px-4 py-16">
@@ -128,7 +130,7 @@ export default function Landing() {
                 <li>✅ Death Switch Monitoring</li>
                 <li>✅ Blockchain Notarization</li>
               </ul>
-              <button className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
+              <button onClick={signIn} className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
                 Get Started
               </button>
             </div>
