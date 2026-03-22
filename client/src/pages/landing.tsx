@@ -35,12 +35,12 @@ export default function Landing() {
           </div>
 
           <div className="space-y-4 max-w-2xl mx-auto">
-            <a 
-              href="/dashboard" 
-              className="block bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold"
+            <button
+              onClick={signIn}
+              className="block w-full bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold"
             >
-              🚀 Access Dashboard
-            </a>
+              Sign In with Google to Get Started
+            </button>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <a 
                 href="/will-builder" 
