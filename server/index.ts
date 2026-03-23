@@ -1,3 +1,4 @@
+import { registerRoutes } from './routes.js';
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import path from "path";
@@ -26,6 +27,9 @@ app.use((req, res, next) => {
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Register all API routes
+registerRoutes(app);
 
 // Basic API routes (placeholder)
 app.get('/api/user', (req, res) => {
