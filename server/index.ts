@@ -2,6 +2,8 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import { OAuth2Client } from 'google-auth-library';
+import jwt from 'jsonwebtoken';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -29,7 +31,7 @@ app.get('/health', (req, res) => {
 
 
 
-const { OAuth2Client } = require('google-auth-library');
+
 const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
@@ -54,7 +56,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
       audience: process.env.GOOGLE_CLIENT_ID
     });
     const payload = ticket.getPayload();
-    const jwt = require('jsonwebtoken');
+    
     const token = jwt.sign(
       { id: payload.sub, email: payload.email, name: payload.name },
       process.env.JWT_SECRET || 'fallback-secret',
