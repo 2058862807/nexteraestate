@@ -46,7 +46,7 @@ app.get('/api/auth/google/callback', async (req: Request, res: Response) => {
     const { code } = req.query;
     const frontendUrl = process.env.FRONTEND_URL || 'https://nexteraestate.com';
     if (!code) return res.redirect(frontendUrl + '?error=no_code');
-    const { tokens } = await googleClient.getToken(code as string);
+    const { tokens } = await googleClient.getToken({ code: code as string, redirect_uri: process.env.GOOGLE_REDIRECT_URI || 'https://nexteraestate.onrender.com/api/auth/google/callback' });
     googleClient.setCredentials(tokens);
     const ticket = await googleClient.verifyIdToken({
       idToken: tokens.id_token!,
