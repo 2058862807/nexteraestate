@@ -1,4 +1,3 @@
-import { registerRoutes } from './routes.js';
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import path from "path";
@@ -28,8 +27,46 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Register all API routes
-await registerRoutes(app);
+
+
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+);
+
+app.get('/api/auth/google', (req, res) => {
+  const url = googleClient.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+  });
+  res.redirect(url);
+});
+
+app.get('/api/auth/google/callback', async (req, res) => {
+  try {
+    const { code } = req.query;
+    const { tokens } = await googleClient.getToken(code);
+    googleClient.setCredentials(tokens);
+    const ticket = await googleClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+    const payload = ticket.getPayload();
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      { id: payload.sub, email: payload.email, name: payload.name },
+      process.env.JWT_SECRET || 'fallback-secret',
+      { expiresIn: '7d' }
+    );
+    const frontendUrl = process.env.FRONTEND_URL || 'https://nexteraestate.com';
+    res.redirect(frontendUrl + '/dashboard?token=' + token);
+  } catch (err) {
+    console.error('Auth error:', err);
+    res.redirect((process.env.FRONTEND_URL || 'https://nexteraestate.com') + '?error=auth_failed');
+  }
+});
 
 // Basic API routes (placeholder)
 app.get('/api/user', (req, res) => {
