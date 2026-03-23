@@ -1,36 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-
-// CORS middleware
-app.use(cors({
-  origin: ['https://nexteraestate.com', 'https://www.nexteraestate.com', 'http://localhost:3000', 'http://localhost:5000'],
-  credentials: true
-}));
-
-// Basic middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// Request logging
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
-  next();
-});
-
-// Basic health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-
-
 
 const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -38,107 +11,90 @@ const googleClient = new OAuth2Client(
   process.env.GOOGLE_REDIRECT_URI
 );
 
-app.get('/api/auth/google', (req, res) => {
-  const url = googleClient.generateAuthUrl({
-    access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
-  });
-  res.redirect(url);
+app.use(cors({
+  origin: ['https://nexteraestate.com', 'https://www.nexteraestate.com', 'http://localhost:3000', 'http://localhost:5000'],
+  credentials: true
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
 });
 
-app.get('/api/auth/google/callback', async (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/auth/google', (req: Request, res: Response) => {
+  try {
+    const url = googleClient.generateAuthUrl({
+      access_type: 'offline',
+      scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+    });
+    res.redirect(url);
+  } catch (err) {
+    console.error('Auth error:', err);
+    res.status(500).json({ error: 'Auth failed' });
+  }
+});
+
+app.get('/api/auth/google/callback', async (req: Request, res: Response) => {
   try {
     const { code } = req.query;
-    const { tokens } = await googleClient.getToken(code);
+    const frontendUrl = process.env.FRONTEND_URL || 'https://nexteraestate.com';
+    if (!code) return res.redirect(frontendUrl + '?error=no_code');
+    const { tokens } = await googleClient.getToken(code as string);
     googleClient.setCredentials(tokens);
     const ticket = await googleClient.verifyIdToken({
-      idToken: tokens.id_token,
-      audience: process.env.GOOGLE_CLIENT_ID
+      idToken: tokens.id_token!,
+      audience: process.env.GOOGLE_CLIENT_ID!
     });
-    const payload = ticket.getPayload();
-    
+    const payload = ticket.getPayload()!;
     const token = jwt.sign(
-      { id: payload.sub, email: payload.email, name: payload.name },
+      { id: payload.sub, email: payload.email, name: payload.name, avatar: payload.picture },
       process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: '7d' }
     );
-    const frontendUrl = process.env.FRONTEND_URL || 'https://nexteraestate.com';
     res.redirect(frontendUrl + '/dashboard?token=' + token);
   } catch (err) {
-    console.error('Auth error:', err);
+    console.error('Callback error:', err);
     res.redirect((process.env.FRONTEND_URL || 'https://nexteraestate.com') + '?error=auth_failed');
   }
 });
 
-// Basic API routes (placeholder)
-app.get('/api/user', (req, res) => {
-  res.json({ id: '1', name: 'Demo User', email: 'demo@nexteraestate.com' });
+app.get('/api/user', (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+    res.json({ id: decoded.id, email: decoded.email, name: decoded.name, avatar: decoded.avatar });
+  } catch {
+    res.status(401).json({ error: 'Invalid token' });
+  }
 });
 
-app.get('/api/wills', (req, res) => {
-  res.json([{
-    id: '1',
-    title: 'My Will',
-    status: 'draft',
-    personalInfo: { name: 'Demo User', state: 'CA' },
-    createdAt: new Date()
-  }]);
+app.get('/api/wills', (req: Request, res: Response) => { res.json([]); });
+app.get('/api/documents', (req: Request, res: Response) => { res.json([]); });
+app.get('/api/family', (req: Request, res: Response) => { res.json([]); });
+app.get('/api/death-switch', (req: Request, res: Response) => { res.json({ enabled: false }); });
+app.get('/api/activity', (req: Request, res: Response) => { res.json([]); });
+app.get('/api/payments/usage', (req: Request, res: Response) => {
+  res.json({ storage: { used: 0, limit: 5000000000, percentage: 0 }, videoMessages: { used: 0, limit: 2 }, familyMembers: { used: 0, limit: 3 } });
+});
+app.get('/api/payments/subscription', (req: Request, res: Response) => {
+  res.json({ plan: { name: 'Free', id: 'free' }, status: 'active' });
 });
 
-app.get('/api/documents', (req, res) => {
-  res.json([]);
-});
-
-app.get('/api/family', (req, res) => {
-  res.json([]);
-});
-
-app.get('/api/death-switch', (req, res) => {
-  res.json({ enabled: false });
-});
-
-app.get('/api/activity', (req, res) => {
-  res.json([{
-    id: '1',
-    action: 'Will created',
-    createdAt: new Date()
-  }]);
-});
-
-app.get('/api/payments/usage', (req, res) => {
-  res.json({
-    storage: { used: 0, limit: 5000000000, percentage: 0 },
-    videoMessages: { used: 0, limit: 2 },
-    familyMembers: { used: 0, limit: 3 }
-  });
-});
-
-app.get('/api/payments/subscription', (req, res) => {
-  res.json({
-    plan: { name: 'Free', id: 'free' },
-    status: 'active'
-  });
-});
-
-// Error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('Server error:', err);
-  res.status(err.status || 500).json({ 
-    error: err.message || 'Internal Server Error' 
-  });
+  res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
 
-
-// Register routes then start server
-registerRoutes(app).then(() => {
-  const port = parseInt(process.env.PORT || "5000", 10);
+const port = parseInt(process.env.PORT || "5000", 10);
 app.listen(port, "0.0.0.0", () => {
   console.log(`[SERVER] NextEra Estate backend listening on port ${port}`);
   console.log(`[SERVER] Environment: ${process.env.NODE_ENV || 'development'}`);
-  });
-}).catch(err => {
-  console.error('Failed to start server:', err);
-  process.exit(1);
 });
-
-
