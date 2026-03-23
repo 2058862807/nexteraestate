@@ -29,7 +29,7 @@ app.get('/health', (req, res) => {
 });
 
 // Register all API routes
-registerRoutes(app);
+await registerRoutes(app);
 
 // Basic API routes (placeholder)
 app.get('/api/user', (req, res) => {
@@ -89,10 +89,17 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-const port = parseInt(process.env.PORT || "5000", 10);
+
+// Register routes then start server
+registerRoutes(app).then(() => {
+  const port = parseInt(process.env.PORT || "5000", 10);
 app.listen(port, "0.0.0.0", () => {
   console.log(`[SERVER] NextEra Estate backend listening on port ${port}`);
   console.log(`[SERVER] Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}).catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
 
 
