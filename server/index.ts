@@ -31,7 +31,8 @@ app.get('/api/auth/google', (req: Request, res: Response) => {
   try {
     const url = googleClient.generateAuthUrl({
       access_type: 'offline',
-      scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+      scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
+      redirect_uri: process.env.GOOGLE_REDIRECT_URI || 'https://nexteraestate.onrender.com/api/auth/google/callback'
     });
     res.redirect(url);
   } catch (err) {
