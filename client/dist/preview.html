@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextEra Estate - AI-Powered Estate Planning</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #f0fdf4 100%);
+            min-height: 100vh;
+            color: #374151;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .hero { text-align: center; margin-bottom: 4rem; }
+        .hero h1 { 
+            font-size: 4rem; font-weight: 800; color: #1f2937; margin-bottom: 1rem;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 1.5rem; color: #6b7280; margin-bottom: 2rem; line-height: 1.6; }
+        .features { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin-bottom: 3rem; }
+        .feature-tag { 
+            background: rgba(59, 130, 246, 0.1); color: #2563eb; 
+            padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.9rem; font-weight: 500;
+        }
+        .feature-tag:nth-child(2) { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+        .feature-tag:nth-child(3) { background: rgba(147, 51, 234, 0.1); color: #9333ea; }
+        .feature-tag:nth-child(4) { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+        .feature-tag:nth-child(5) { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+        .feature-tag:nth-child(6) { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+        
+        .section { background: white; border-radius: 1rem; padding: 3rem; margin-bottom: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .section h2 { font-size: 2.5rem; font-weight: 700; text-align: center; margin-bottom: 2rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+        
+        .pricing { text-align: center; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 2rem; }
+        .price-card { 
+            border: 2px solid #e5e7eb; border-radius: 1rem; padding: 2rem; 
+            transition: transform 0.2s, box-shadow 0.2s; background: white;
+            position: relative;
+        }
+        .price-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .price-card.popular { border-color: #16a34a; }
+        .popular-badge { 
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            background: #16a34a; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.8rem;
+        }
+        .price { font-size: 3rem; font-weight: 800; margin: 1rem 0; }
+        .price-card h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .price-card ul { text-align: left; margin: 1.5rem 0; }
+        .price-card li { margin: 0.5rem 0; }
+        .btn { 
+            background: #2563eb; color: white; padding: 1rem 2rem; border: none; 
+            border-radius: 0.5rem; font-weight: 600; cursor: pointer; width: 100%;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #1d4ed8; }
+        .btn-green { background: #16a34a; }
+        .btn-green:hover { background: #15803d; }
+        .btn-purple { background: #9333ea; }
+        .btn-purple:hover { background: #7c3aed; }
+        
+        .cta { text-align: center; margin-top: 3rem; }
+        .cta-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 2rem; }
+        .footer { text-align: center; margin-top: 4rem; color: #6b7280; }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1.2rem; }
+            .section { padding: 2rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>NextEra Estate</h1>
+            <p>AI-Powered Estate Planning with Blockchain Security,<br>50-State Legal Compliance, and AI Grief Counseling</p>
+            
+            <div class="features">
+                <span class="feature-tag">🤖 AI Will Builder</span>
+                <span class="feature-tag">🔒 Blockchain Notarization</span>
+                <span class="feature-tag">📊 50-State Legal Compliance</span>
+                <span class="feature-tag">💝 AI Grief Counseling</span>
+                <span class="feature-tag">📹 Video Messages</span>
+                <span class="feature-tag">🛡️ Death Switch Protection</span>
+            </div>
+        </div>
+
+        <!-- Revolutionary Platform Section -->
+        <div class="section">
+            <h2>Revolutionary Estate Planning Platform</h2>
+            <div class="grid">
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
+                    <h3 style="color: #2563eb; margin-bottom: 1rem;">AI-Powered</h3>
+                    <p>Advanced AI guides you through will creation with smart suggestions and voice-to-text capabilities</p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔗</div>
+                    <h3 style="color: #16a34a; margin-bottom: 1rem;">Blockchain Secured</h3>
+                    <p>Every document notarized on blockchain for tamper-proof verification and security</p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">⚖️</div>
+                    <h3 style="color: #9333ea; margin-bottom: 1rem;">Legal Compliant</h3>
+                    <p>Real-time compliance checking across all 50 US states with automatic legal updates</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing Section -->
+        <div class="section pricing">
+            <h2>Simple, Transparent Pricing</h2>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <h3>Basic</h3>
+                    <div class="price" style="color: #2563eb;">$9.99<span style="font-size: 1rem;">/month</span></div>
+                    <ul>
+                        <li>✅ AI Will Builder</li>
+                        <li>✅ 5GB Secure Storage</li>
+                        <li>✅ 2 Video Messages</li>
+                        <li>✅ Death Switch Monitoring</li>
+                        <li>✅ Blockchain Notarization</li>
+                    </ul>
+                    <button class="btn">Get Started</button>
+                </div>
+                
+                <div class="price-card popular">
+                    <div class="popular-badge">Most Popular</div>
+                    <h3>Premium</h3>
+                    <div class="price" style="color: #16a34a;">$19.99<span style="font-size: 1rem;">/month</span></div>
+                    <ul>
+                        <li>✅ Everything in Basic</li>
+                        <li>✅ Unlimited Storage</li>
+                        <li>✅ Unlimited Video Messages</li>
+                        <li>✅ 50-State Legal Compliance</li>
+                        <li>✅ AI Grief Counseling</li>
+                        <li>✅ Priority Support</li>
+                    </ul>
+                    <button class="btn btn-green">Choose Premium</button>
+                </div>
+                
+                <div class="price-card">
+                    <h3>Family</h3>
+                    <div class="price" style="color: #9333ea;">$29.99<span style="font-size: 1rem;">/month</span></div>
+                    <ul>
+                        <li>✅ Everything in Premium</li>
+                        <li>✅ Up to 12 Family Members</li>
+                        <li>✅ Family Communication Center</li>
+                        <li>✅ Legal Consultation Credits</li>
+                        <li>✅ Dedicated Account Manager</li>
+                        <li>✅ Multi-Will Management</li>
+                    </ul>
+                    <button class="btn btn-purple">Choose Family</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="cta">
+            <h2>Ready to Secure Your Legacy?</h2>
+            <div class="cta-buttons">
+                <button class="btn" style="font-size: 1.1rem; padding: 1.2rem;">🚀 Start Estate Planning</button>
+                <button class="btn btn-green" style="font-size: 1.1rem; padding: 1.2rem;">📝 Build Your Will</button>
+                <button class="btn" style="background: #dc2626; font-size: 1.1rem; padding: 1.2rem;">💙 AI Grief Support</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">
+                🏆 Trusted by thousands of families • 🔒 Bank-level security • ⚖️ Legal compliance guaranteed
+            </p>
+            <p>© 2024 NextEra Estate. The future of AI-powered estate planning with blockchain security.</p>
+        </div>
+    </div>
+</body>
+</html>
