@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useState, useEffect, createContext, useContext } from 'react';
 import './App.css';
 import { TermsPage, PrivacyPage, FAQPage } from './LegalPages';
+import { TermsPage, PrivacyPage, FAQPage } from './LegalPages';
 import BlockchainPage from './BlockchainPage';
 import VideoMessagesPage from './VideoMessagesPage';
 import DeathSwitchPage from './DeathSwitchPage';
@@ -355,6 +356,9 @@ export default function App() {
           <Route path="/videos" element={<Protected><VideoMessagesPage /></Protected>} />
           <Route path="/death-switch" element={<Protected><DeathSwitchPage /></Protected>} />
           <Route path="/password-vault" element={<Protected><PasswordVaultPage /></Protected>} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/faq" element={<FAQPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/faq" element={<FAQPage />} />
