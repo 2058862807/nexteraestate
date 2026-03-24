@@ -364,6 +364,25 @@ app.get('/api/dashboard/stats', auth, async (req: Request, res: Response) => {
   }
 });
 
+
+// ── AI - Esquire ──
+app.post('/api/ai/esquire', async (req: Request, res: Response) => {
+  try {
+    const message = req.body.message || req.body.userInput || '';
+    const aiMessage = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1500,
+      system: `You are Esquire AI, an expert estate planning assistant for NextEra Estate. Help users understand: will creation, trusts, power of attorney, probate, Social Security survivors benefits (eligibility, how to apply, benefit amounts), Veterans benefits (VA pension, DIC, Survivors Pension, burial benefits), and how to use NextEra Estate features. Be clear and compassionate. Always add: This is general information, not legal advice.`,
+      messages: [{ role: 'user', content: message }]
+    });
+    const text = aiMessage.content[0].type === 'text' ? aiMessage.content[0].text : '';
+    res.json({ response: text });
+  } catch (err) {
+    console.error('Esquire error:', err);
+    res.status(500).json({ error: 'AI temporarily unavailable' });
+  }
+});
+
 // ── Error Handler ──
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Server error:', err);

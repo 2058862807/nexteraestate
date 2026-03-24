@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect, createContext, useContext } from 'react';
 import './App.css';
+import ChatWidget from './ChatWidget';
 
 const API = import.meta.env.VITE_API_URL || 'https://nexteraestate.onrender.com';
 
@@ -343,6 +344,7 @@ export default function App() {
           <Route path="/grief" element={<Protected><Grief /></Protected>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ChatWidget />
       </Router>
     </AuthProvider>
   );
