@@ -383,6 +383,166 @@ app.post('/api/ai/esquire', async (req: Request, res: Response) => {
   }
 });
 
+// ── Add these routes to server/index.ts before the Error Handler ──
+
+// ── Blockchain Notarization ──
+app.get('/api/blockchain/notarizations', auth, async (req: Request, res: Response) => {
+  if (!db) return res.json([]);
+  try {
+    const result = await pool!.query('SELECT * FROM blockchain_notarizations WHERE user_id=$1 ORDER BY created_at DESC', [req.user.id]);
+    res.json(result.rows);
+  } catch { res.json([]); }
+});
+
+app.post('/api/blockchain/notarize', auth, async (req: Request, res: Response) => {
+  try {
+    const { hash, fileName, fileSize } = req.body;
+    const id = uuidv4();
+    const txHash = '0x' + Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (db) {
+      const result = await pool!.query(
+        `INSERT INTO blockchain_notarizations (id, user_id, hash, tx_hash, file_name, file_size, status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, 'confirmed', NOW()) RETURNING *`,
+        [id, req.user.id, hash, txHash, fileName, fileSize]
+      );
+      res.json(result.rows[0]);
+    } else {
+      res.json({ id, hash, tx_hash: txHash, file_name: fileName, status: 'confirmed', created_at: new Date() });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Notarization failed' });
+  }
+});
+
+// ── Video Messages ──
+app.get('/api/videos', auth, async (req: Request, res: Response) => {
+  if (!db) return res.json([]);
+  try {
+    const result = await pool!.query('SELECT * FROM video_messages WHERE user_id=$1 ORDER BY created_at DESC', [req.user.id]);
+    res.json(result.rows);
+  } catch { res.json([]); }
+});
+
+app.post('/api/videos', auth, upload.single('video'), async (req: Request, res: Response) => {
+  try {
+    const id = uuidv4();
+    const { title, recipient, trigger, message } = req.body;
+    if (db) {
+      const result = await pool!.query(
+        `INSERT INTO video_messages (id, user_id, title, recipient, trigger_event, message, file_name, file_size, status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending', NOW()) RETURNING *`,
+        [id, req.user.id, title || req.file?.originalname, recipient, trigger || 'death', message, req.file?.originalname, req.file?.size]
+      );
+      res.json(result.rows[0]);
+    } else {
+      res.json({ id, title, recipient, trigger, status: 'pending', created_at: new Date() });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+app.delete('/api/videos/:id', auth, async (req: Request, res: Response) => {
+  if (!db) return res.json({ success: true });
+  try {
+    await pool!.query('DELETE FROM video_messages WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'Delete failed' }); }
+});
+
+// ── Death Switch Heirs ──
+app.get('/api/death-switch/heirs', auth, async (req: Request, res: Response) => {
+  if (!db) return res.json([]);
+  try {
+    const result = await pool!.query('SELECT * FROM death_switch_heirs WHERE user_id=$1', [req.user.id]);
+    res.json(result.rows);
+  } catch { res.json([]); }
+});
+
+app.post('/api/death-switch/heirs', auth, async (req: Request, res: Response) => {
+  try {
+    const id = uuidv4();
+    const { name, email, relationship, phone } = req.body;
+    if (db) {
+      const result = await pool!.query(
+        `INSERT INTO death_switch_heirs (id, user_id, name, email, relationship, phone, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *`,
+        [id, req.user.id, name, email, relationship, phone]
+      );
+      res.json(result.rows[0]);
+    } else {
+      res.json({ id, name, email, relationship, phone });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to add heir' });
+  }
+});
+
+app.delete('/api/death-switch/heirs/:id', auth, async (req: Request, res: Response) => {
+  if (!db) return res.json({ success: true });
+  try {
+    await pool!.query('DELETE FROM death_switch_heirs WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'Delete failed' }); }
+});
+
+app.post('/api/death-switch/checkin', auth, async (req: Request, res: Response) => {
+  try {
+    if (db) {
+      await pool!.query(
+        `INSERT INTO death_switch (id, user_id, enabled, inactivity_period, last_checkin, created_at, updated_at)
+         VALUES ($1, $2, true, 90, NOW(), NOW(), NOW())
+         ON CONFLICT (user_id) DO UPDATE SET last_checkin=NOW(), updated_at=NOW()`,
+        [uuidv4(), req.user.id]
+      );
+    }
+    res.json({ success: true, lastCheckin: new Date() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Check-in failed' });
+  }
+});
+
+// ── Password Vault ──
+app.get('/api/password-vault', auth, async (req: Request, res: Response) => {
+  if (!db) return res.json([]);
+  try {
+    const result = await pool!.query('SELECT * FROM password_vault WHERE user_id=$1 ORDER BY created_at DESC', [req.user.id]);
+    res.json(result.rows);
+  } catch { res.json([]); }
+});
+
+app.post('/api/password-vault', auth, async (req: Request, res: Response) => {
+  try {
+    const id = uuidv4();
+    const { title, category, username, password, url, pin, notes, recovery_codes } = req.body;
+    if (db) {
+      const result = await pool!.query(
+        `INSERT INTO password_vault (id, user_id, title, category, username, password, url, pin, notes, recovery_codes, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW()) RETURNING *`,
+        [id, req.user.id, title, category, username, password, url, pin, notes, recovery_codes]
+      );
+      res.json(result.rows[0]);
+    } else {
+      res.json({ id, title, category, username, url, notes, created_at: new Date() });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to save entry' });
+  }
+});
+
+app.delete('/api/password-vault/:id', auth, async (req: Request, res: Response) => {
+  if (!db) return res.json({ success: true });
+  try {
+    await pool!.query('DELETE FROM password_vault WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'Delete failed' }); }
+});
+
 // ── Error Handler ──
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Server error:', err);

@@ -1,6 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect, createContext, useContext } from 'react';
 import './App.css';
+import BlockchainPage from './BlockchainPage';
+import VideoMessagesPage from './VideoMessagesPage';
+import DeathSwitchPage from './DeathSwitchPage';
+import PasswordVaultPage from './PasswordVaultPage';
 import ChatWidget from './ChatWidget';
 
 const API = import.meta.env.VITE_API_URL || 'https://nexteraestate.onrender.com';
@@ -52,6 +56,10 @@ function Nav() {
           <a href="/vault" className="hover:text-blue-400">Vault</a>
           <a href="/compliance" className="hover:text-blue-400">Compliance</a>
           <a href="/grief" className="hover:text-blue-400">Grief Support</a>
+          <a href="/blockchain" className="hover:text-blue-400">Blockchain</a>
+          <a href="/videos" className="hover:text-blue-400">Videos</a>
+          <a href="/death-switch" className="hover:text-blue-400">Death Switch</a>
+          <a href="/password-vault" className="hover:text-blue-400">Password Vault</a>
         </>}
         {user
           ? <button onClick={signOut} className="bg-slate-700 px-4 py-2 rounded hover:bg-slate-600">{user.name}</button>
@@ -342,6 +350,10 @@ export default function App() {
           <Route path="/vault" element={<Protected><Vault /></Protected>} />
           <Route path="/compliance" element={<Protected><Compliance /></Protected>} />
           <Route path="/grief" element={<Protected><Grief /></Protected>} />
+          <Route path="/blockchain" element={<Protected><BlockchainPage /></Protected>} />
+          <Route path="/videos" element={<Protected><VideoMessagesPage /></Protected>} />
+          <Route path="/death-switch" element={<Protected><DeathSwitchPage /></Protected>} />
+          <Route path="/password-vault" element={<Protected><PasswordVaultPage /></Protected>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <ChatWidget />
