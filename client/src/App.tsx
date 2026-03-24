@@ -53,6 +53,94 @@ function Nav() {
 
   return (
     <nav className="bg-slate-900 text-white px-6 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-slate-800">
+      <a href="/" className="text-lg font-bold text-blue-400 whitespace-nowrap">
+        NextEra Estate<sup className="text-xs text-blue-300 ml-0.5">™</sup>
+      </a>
+      {user && (
+        <div className="flex items-center gap-1 text-xs">
+          <a href="/dashboard" className="px-3 py-2 rounded hover:bg-slate-800 whitespace-nowrap">Dashboard</a>
+
+          {/* Planning dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => { setPlanOpen(o => !o); setToolsOpen(false); }}
+              className="px-3 py-2 rounded hover:bg-slate-800 flex items-center gap-1"
+            >
+              Planning <span className="text-slate-400 text-xs">{planOpen ? "▲" : "▼"}</span>
+            </button>
+            {planOpen && (
+              <div className="absolute top-full left-0 mt-1 bg-slate-800 rounded-xl shadow-xl border border-slate-700 py-2 w-56 z-50">
+                {[
+                  { href: '/will-builder', icon: '📝', label: 'Will Builder', desc: 'Create your legal will' },
+                  { href: '/vault', icon: '📁', label: 'Document Vault', desc: 'Store important documents' },
+                  { href: '/compliance', icon: '⚖️', label: 'Compliance', desc: '50-state legal requirements' },
+                  { href: '/family', icon: '👨‍👩‍👧', label: 'Family', desc: 'Manage family members' },
+                ].map(item => (
+                  <a key={item.href} href={item.href} onClick={() => setPlanOpen(false)} className="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-700 transition-colors">
+                    <span className="text-base mt-0.5">{item.icon}</span>
+                    <div><div className="font-medium text-white text-xs">{item.label}</div><div className="text-slate-400 text-xs">{item.desc}</div></div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Tools dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => { setToolsOpen(o => !o); setPlanOpen(false); }}
+              className="px-3 py-2 rounded hover:bg-slate-800 flex items-center gap-1"
+            >
+              Tools <span className="text-slate-400 text-xs">{toolsOpen ? "▲" : "▼"}</span>
+            </button>
+            {toolsOpen && (
+              <div className="absolute top-full left-0 mt-1 bg-slate-800 rounded-xl shadow-xl border border-slate-700 py-2 w-56 z-50">
+                {[
+                  { href: '/blockchain', icon: '🔗', label: 'Blockchain', desc: 'Notarize documents' },
+                  { href: '/videos', icon: '🎥', label: 'Video Messages', desc: 'Leave messages for loved ones' },
+                  { href: '/death-switch', icon: '🛡️', label: 'Death Switch', desc: 'Inactivity monitoring' },
+                  { href: '/password-vault', icon: '🔑', label: 'Password Vault', desc: 'Store credentials' },
+                  { href: '/grief', icon: '💙', label: 'Grief Support', desc: 'AI counseling support' },
+                ].map(item => (
+                  <a key={item.href} href={item.href} onClick={() => setToolsOpen(false)} className="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-700 transition-colors">
+                    <span className="text-base mt-0.5">{item.icon}</span>
+                    <div><div className="font-medium text-white text-xs">{item.label}</div><div className="text-slate-400 text-xs">{item.desc}</div></div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <a href="/faq" className="px-3 py-2 rounded hover:bg-slate-800">FAQ</a>
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        {user
+          ? <button onClick={signOut} title={user.email} className="bg-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-600 text-xs flex items-center gap-2">
+              {user.avatar && <img src={user.avatar} className="w-5 h-5 rounded-full" />}
+              {user.name?.split(' ')[0]}
+            </button>
+          : <button onClick={signIn} className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 text-xs font-semibold">Sign In</button>}
+      </div>
+    </nav>
+  );
+}
+
+
+function Protected({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" /></div>;
+  if (!user) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+function Nav() {
+  const { user, signIn, signOut } = useAuth();
+  const [planOpen, setPlanOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+
+  return (
+    <nav className="bg-slate-900 text-white px-6 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-slate-800">
       <a href="/" className="text-lg font-bold text-blue-400 whitespace-nowrap">NextEra Estate</a>
       {user && (
         <div className="flex items-center gap-1 text-xs">
