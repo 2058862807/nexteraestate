@@ -48,24 +48,71 @@ function Protected({ children }: { children: React.ReactNode }) {
 
 function Nav() {
   const { user, signIn, signOut } = useAuth();
+  const [planOpen, setPlanOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+
   return (
-    <nav className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between sticky top-0 z-50">
-      <a href="/" className="text-xl font-bold text-blue-400">NextEra Estate</a>
-      <div className="flex items-center gap-4 text-sm">
-        {user && <>
-          <a href="/dashboard" className="hover:text-blue-400">Dashboard</a>
-          <a href="/will-builder" className="hover:text-blue-400">Will Builder</a>
-          <a href="/vault" className="hover:text-blue-400">Vault</a>
-          <a href="/compliance" className="hover:text-blue-400">Compliance</a>
-          <a href="/grief" className="hover:text-blue-400">Grief Support</a>
-          <a href="/blockchain" className="hover:text-blue-400">Blockchain</a>
-          <a href="/videos" className="hover:text-blue-400">Videos</a>
-          <a href="/death-switch" className="hover:text-blue-400">Death Switch</a>
-          <a href="/password-vault" className="hover:text-blue-400">Password Vault</a>
-        </>}
+    <nav className="bg-slate-900 text-white px-6 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-slate-800">
+      <a href="/" className="text-lg font-bold text-blue-400 whitespace-nowrap">NextEra Estate</a>
+      {user && (
+        <div className="flex items-center gap-1 text-xs">
+          <a href="/dashboard" className="px-3 py-2 rounded hover:bg-slate-800 whitespace-nowrap">Dashboard</a>
+
+          {/* Planning dropdown */}
+          <div className="relative" onMouseEnter={() => setPlanOpen(true)} onMouseLeave={() => setPlanOpen(false)}>
+            <button className="px-3 py-2 rounded hover:bg-slate-800 flex items-center gap-1">
+              Planning <span className="text-slate-400">▾</span>
+            </button>
+            {planOpen && (
+              <div className="absolute top-full left-0 bg-slate-800 rounded-xl shadow-xl border border-slate-700 py-2 w-56 z-50">
+                {[
+                  { href: '/will-builder', icon: '📝', label: 'Will Builder', desc: 'Create your legal will' },
+                  { href: '/vault', icon: '📁', label: 'Document Vault', desc: 'Store important documents' },
+                  { href: '/compliance', icon: '⚖️', label: 'Compliance', desc: '50-state legal requirements' },
+                  { href: '/family', icon: '👨‍👩‍👧', label: 'Family', desc: 'Manage family members' },
+                ].map(item => (
+                  <a key={item.href} href={item.href} className="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-700 transition-colors">
+                    <span className="text-base mt-0.5">{item.icon}</span>
+                    <div><div className="font-medium text-white text-xs">{item.label}</div><div className="text-slate-400 text-xs">{item.desc}</div></div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Tools dropdown */}
+          <div className="relative" onMouseEnter={() => setToolsOpen(true)} onMouseLeave={() => setToolsOpen(false)}>
+            <button className="px-3 py-2 rounded hover:bg-slate-800 flex items-center gap-1">
+              Tools <span className="text-slate-400">▾</span>
+            </button>
+            {toolsOpen && (
+              <div className="absolute top-full left-0 bg-slate-800 rounded-xl shadow-xl border border-slate-700 py-2 w-56 z-50">
+                {[
+                  { href: '/blockchain', icon: '🔗', label: 'Blockchain', desc: 'Notarize documents' },
+                  { href: '/videos', icon: '🎥', label: 'Video Messages', desc: 'Leave messages for loved ones' },
+                  { href: '/death-switch', icon: '🛡️', label: 'Death Switch', desc: 'Inactivity monitoring' },
+                  { href: '/password-vault', icon: '🔑', label: 'Password Vault', desc: 'Store account credentials' },
+                  { href: '/grief', icon: '💙', label: 'Grief Support', desc: 'AI counseling support' },
+                ].map(item => (
+                  <a key={item.href} href={item.href} className="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-700 transition-colors">
+                    <span className="text-base mt-0.5">{item.icon}</span>
+                    <div><div className="font-medium text-white text-xs">{item.label}</div><div className="text-slate-400 text-xs">{item.desc}</div></div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <a href="/faq" className="px-3 py-2 rounded hover:bg-slate-800">FAQ</a>
+        </div>
+      )}
+      <div className="flex items-center gap-2">
         {user
-          ? <button onClick={signOut} className="bg-slate-700 px-4 py-2 rounded hover:bg-slate-600">{user.name}</button>
-          : <button onClick={signIn} className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">Sign In with Google</button>}
+          ? <button onClick={signOut} title={user.email} className="bg-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-600 text-xs flex items-center gap-2">
+              {user.avatar && <img src={user.avatar} className="w-5 h-5 rounded-full" />}
+              {user.name?.split(' ')[0]}
+            </button>
+          : <button onClick={signIn} className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 text-xs font-semibold">Sign In</button>}
       </div>
     </nav>
   );
