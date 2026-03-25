@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect, createContext, useContext } from 'react';
 import './App.css';
-import WillBuilderPage from './WillBuilderPage';
 import BlockchainPage from './BlockchainPage';
 import VideoMessagesPage from './VideoMessagesPage';
 import DeathSwitchPage from './DeathSwitchPage';
@@ -401,7 +400,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
-          <Route path="/will-builder" element={<Protected><WillBuilderPage /></Protected>} />
+          <Route path="/will-builder" element={<Protected><WillBuilder /></Protected>} />
           <Route path="/vault" element={<Protected><Vault /></Protected>} />
           <Route path="/compliance" element={<Protected><Compliance /></Protected>} />
           <Route path="/grief" element={<Protected><Grief /></Protected>} />
