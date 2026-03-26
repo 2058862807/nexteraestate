@@ -35,7 +35,7 @@ export default function ChatWidget() {
       const d = await r.json();
       setMessages(prev => [...prev, { role: 'ai', text: d.response || 'I apologize, please try again.' }]);
     } catch {
-      setMessages(prev => [...prev, { role: 'ai', text: 'Connection error. Please try again.' }]);
+      setMessages(prev => [...prev, { role: "ai", text: "Connection error. Please try again." }]);
     }
     setLoading(false);
   };
